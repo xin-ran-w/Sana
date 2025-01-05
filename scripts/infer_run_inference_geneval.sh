@@ -34,6 +34,10 @@ do
         model_paths="${arg#*=}"
         shift
         ;;
+        --sample_nums=*)
+        sample_nums="${arg#*=}"
+        shift
+        ;;
         --cfg_scale=*)
         cfg_scale="${arg#*=}"
         shift
@@ -54,7 +58,7 @@ done
 step=${step:-$default_step}
 sampling_algo=${sampling_algo:-$default_sampling_algo}
 cfg_scale=${cfg_scale:-4.5}
-sample_nums=$default_sample_nums
+sample_nums=${sample_nums:-$default_sample_nums}
 samples_per_gpu=$((sample_nums / np))
 add_label=${add_label:-$default_add_label}
 ablation_key=${ablation_key:-''}
