@@ -72,7 +72,7 @@ echo "Add label: $add_label"
 echo "Exist time prefix: $exist_time_prefix"
 
 cmd_template="DPM_TQDM=True python scripts/inference_geneval.py --config={config_file} --model_path={model_path} \
-    --sampling_algo $sampling_algo --step $step --cfg_scale $cfg_scale \
+    --sampling_algo $sampling_algo --step $step --cfg_scale $cfg_scale --sample_nums $sample_nums \
     --gpu_id {gpu_id} --start_index {start_index} --end_index {end_index}"
 if [ -n "${add_label}" ]; then
     cmd_template="${cmd_template} --add_label ${add_label}"
@@ -108,6 +108,7 @@ if [[ "$model_paths" == *.pth ]]; then
     cmd="${cmd//\{end_index\}/$end_index}"
 
     echo "Running on GPU $gpu_id: samples $start_index to $end_index"
+    echo $cmd
     eval CUDA_VISIBLE_DEVICES=$gpu_id $cmd &
   done
   wait
