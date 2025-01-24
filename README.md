@@ -360,19 +360,26 @@ We will try our best to release
 - \[✅\] Sana merged in Diffusers(https://github.com/huggingface/diffusers/pull/9982)
 - \[✅\] LoRA training by [@paul](https://github.com/sayakpaul)(`diffusers`: https://github.com/huggingface/diffusers/pull/10234)
 - \[✅\] 2K/4K resolution models.(Thanks [@SUPIR](https://github.com/Fanghua-Yu/SUPIR) to provide a 4K super-resolution model)
+- \[✅\] 8bit / 4bit Laptop development
 - \[💻\] ControlNet (train & inference & models)
-- \[💻\] 8bit / 4bit Laptop development
 - \[💻\] Larger model size
 - \[💻\] Better re-construction F32/F64 VAEs.
 - \[💻\] **Sana1.5 (Focus on: Human body / Human face / Text rendering / Realism / Efficiency)**
 
 # 🤗Acknowledgements
 
-- Thanks to [PixArt-α](https://github.com/PixArt-alpha/PixArt-alpha), [PixArt-Σ](https://github.com/PixArt-alpha/PixArt-sigma),
-  [Efficient-ViT](https://github.com/mit-han-lab/efficientvit),
-  [ComfyUI_ExtraModels](https://github.com/city96/ComfyUI_ExtraModels) and
-  [diffusers](https://github.com/huggingface/diffusers)
-  for their wonderful work and codebase!
+**Thanks to the following open-sourced codebase for their wonderful work and codebase!**
+
+- [PixArt-α](https://github.com/PixArt-alpha/PixArt-alpha)
+- [PixArt-Σ](https://github.com/PixArt-alpha/PixArt-sigma)
+- [Efficient-ViT](https://github.com/mit-han-lab/efficientvit)
+- [ComfyUI_ExtraModels](https://github.com/city96/ComfyUI_ExtraModels)
+- [SVDQuant and Nunchaku](https://github.com/mit-han-lab/nunchaku)
+- [diffusers](https://github.com/huggingface/diffusers)
+
+## 🌟 Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=NVlabs/Sana&type=Date)](https://star-history.com/#NVlabs/sana&Date)
 
 # 📖BibTeX
 
