@@ -13,9 +13,9 @@
 | Sana-1.6B | 2Kpx   | [Sana_1600M_2Kpx_BF16](https://huggingface.co/Efficient-Large-Model/Sana_1600M_2Kpx_BF16)               | [Efficient-Large-Model/Sana_1600M_2Kpx_BF16_diffusers](https://huggingface.co/Efficient-Large-Model/Sana_1600M_2Kpx_BF16_diffusers)               | **bf16**/fp32 | Multi-Language |
 | Sana-1.6B | 4Kpx   | [Sana_1600M_4Kpx_BF16](https://huggingface.co/Efficient-Large-Model/Sana_1600M_4Kpx_BF16)               | [Efficient-Large-Model/Sana_1600M_4Kpx_BF16_diffusers](https://huggingface.co/Efficient-Large-Model/Sana_1600M_4Kpx_BF16_diffusers)               | **bf16**/fp32 | Multi-Language |
 | Sana-1.6B | 4Kpx   | [Sana_1600M_4Kpx_BF16](https://huggingface.co/Efficient-Large-Model/Sana_1600M_4Kpx_BF16)               | [Efficient-Large-Model/Sana_1600M_4Kpx_BF16_diffusers](https://huggingface.co/Efficient-Large-Model/Sana_1600M_4Kpx_BF16_diffusers)               | **bf16**/fp32 | Multi-Language |
-ControlNet
+| ControlNet
 | Sana-1.6B-ControlNet | 1Kpx   | [Sana_1600M_1024px_BF16_ControlNet_HED](https://huggingface.co/Efficient-Large-Model/Sana_1600M_1024px_BF16_ControlNet_HED)               | Coming soon              | **bf16**/fp32 | Multi-Language |
-| Sana-0.6B-ControlNet | 1Kpx   | [Sana_600M_1024px_ControlNet_HED](https://huggingface.co/Efficient-Large-Model/Sana_600M_1024px_ControlNet_HED)               | Coming soon              | fp16/fp32 | Multi-Language |
+| Sana-0.6B-ControlNet | 1Kpx   | [Sana_600M_1024px_ControlNet_HED](https://huggingface.co/Efficient-Large-Model/Sana_600M_1024px_ControlNet_HED)               | Coming soon              | fp16/fp32 | -              |
 
 ## ❗ 2. Make sure to use correct precision(fp16/bf16/fp32) for training and inference.
 
