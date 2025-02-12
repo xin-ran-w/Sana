@@ -33,7 +33,7 @@ python app/app_sana_controlnet_hed.py \
 ```
 
 <p align="center" border-raduis="10px">
-  <img src="../controlnet/controlnet_app.jpg" width="90%" alt="teaser_page2"/>
+  <img src="https://nvlabs.github.io/Sana/asset/content/controlnet/controlnet_app.jpg" width="90%" alt="teaser_page2"/>
 </p>
 
 ### 2). Inference with JSON file
