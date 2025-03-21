@@ -40,9 +40,10 @@ As a result, Sana-0.6B is very competitive with modern giant diffusion models (e
 
 ## 🔥🔥 News
 
-- (🔥 New) \[2025/3/21\] 🚀Sana + Inference Scaling is released. [\[Guidance\]](asset/docs/inference_scaling/inference_scaling.md)
+- (🔥 New) \[2025/3/22\] 🔥**SANA-Sprint code & weights are released!** 🎉 Include: [Training & Inference](asset/docs/sana_sprint.md) code and [Weights](asset/docs/model_zoo.md) / [HF](https://huggingface.co/collections/Efficient-Large-Model/sana-15-67d6803867cb21c230b780e4) are all released. [\[Guidance\]](asset/docs/sana_sprint.md)
+- (🔥 New) \[2025/3/21\] 🚀Sana + **Inference Scaling** is released. [\[Guidance\]](asset/docs/inference_scaling/inference_scaling.md)
 - (🔥 New) \[2025/3/16\] 🔥**SANA-1.5 code & weights are released!** 🎉 Include: [DDP/FSDP](#3-train-with-tar-file) | [TAR file WebDataset](#3-train-with-tar-file) | [Multi-Scale](#3-train-with-tar-file) Training code and [Weights](asset/docs/model_zoo.md) | [HF](https://huggingface.co/collections/Efficient-Large-Model/sana-15-67d6803867cb21c230b780e4) are all released.
-- (🔥 New) \[2025/3/14\] 🏃SANA-Sprint is coming out!🎉 A new one/few-step generator of Sana. 0.1s per 1024px image on H100, 0.3s on RTX 4090. Find out more details: [\[Page\]](https://nvlabs.github.io/Sana/Sprint/) | [\[Arxiv\]](https://arxiv.org/abs/2503.09641). Code is coming very soon along with `diffusers`
+- (🔥 New) \[2025/3/14\] 🏃**SANA-Sprint is coming out!** 🎉 A new one/few-step generator of Sana. 0.1s per 1024px image on H100, 0.3s on RTX 4090. Find out more details: [\[Page\]](https://nvlabs.github.io/Sana/Sprint/) | [\[Arxiv\]](https://arxiv.org/abs/2503.09641). Code is coming very soon along with `diffusers`
 - (🔥 New) \[2025/2/10\] 🚀Sana + ControlNet is released. [\[Guidance\]](asset/docs/sana_controlnet.md) | [\[Model\]](asset/docs/model_zoo.md) | [\[Demo\]](https://nv-sana.mit.edu/ctrlnet/)
 - (🔥 New) \[2025/1/30\] Release CAME-8bit optimizer code. Saving more GPU memory during training. [\[How to config\]](https://github.com/NVlabs/Sana/blob/main/configs/sana_config/1024ms/Sana_1600M_img1024_CAME8bit.yaml#L86)
 - (🔥 New) \[2025/1/29\] 🎉 🎉 🎉**SANA 1.5 is out! Figure out how to do efficient training & inference scaling!** 🚀[\[Tech Report\]](https://arxiv.org/abs/2501.18427)
@@ -261,7 +262,7 @@ save_image(image, 'output/sana.png', nrow=1, normalize=True, value_range=(-1, 1)
 # Pull related models
 huggingface-cli download google/gemma-2b-it
 huggingface-cli download google/shieldgemma-2b
-huggingface-cli download mit-han-lab/dc-ae-f32c32-sana-1.0
+huggingface-cli download mit-han-lab/dc-ae-f32c32-sana-1.1
 huggingface-cli download Efficient-Large-Model/Sana_1600M_1024px
 
 # Run with docker
@@ -335,7 +336,7 @@ bash train_scripts/train.sh \
   --train.train_batch_size=8
 ```
 
-### 2). Train with image-text pairs in directory
+### 2). Train with Multi-Scale WebDataset
 
 We also provide conversion scripts to convert your data to the required format. You can refer to the [data conversion scripts](asset/data_conversion_scripts) for more details.
 
@@ -397,6 +398,7 @@ Refer to [Toolkit Manual](asset/docs/metrics_toolkit.md).
 # 🚀 5. Inference Scaling
 
 We trained a specialized [NVILA-2B](https://huggingface.co/Efficient-Large-Model/NVILA-Lite-2B-Verifier) model to score images, which we named VISA (VIla as SAna verifier). By selecting the top 4 images from 2,048 candidates, we enhanced the GenEval performance of SD1.5 and SANA-1.5-4.8B v2, increasing their scores from 42 to 87 and 81 to 96, respectively.
+Details refer to [Inference Scaling Manual](asset/docs/inference_scaling/inference_scaling.md).
 
 | Method                         | Overall | Single | Two  | Counting | Colors | Position | Color Attribution |
 |--------------------------------|---------|--------|------|----------|--------|----------|------------------|
@@ -405,7 +407,15 @@ We trained a specialized [NVILA-2B](https://huggingface.co/Efficient-Large-Model
 | SANA-1.5 4.8B v2              | 0.81    | 0.99   | 0.86 | 0.86     | 0.84   | 0.59     | 0.65             |
 | **+ Inference Scaling**        | **0.96** | **1.00** | **1.00** | **0.97** | **0.94** | **0.96** | **0.87** |
 
-Details refer to [Inference Scaling Manual](asset/docs/inference_scaling/inference_scaling.md).
+# 🏃 6. SANA-Sprint
+
+Our SANA-Sprint models focus on timestep distillation, achieving high-quality generation with 1-4 inference steps. Refer to [SANA-Sprint Manual](asset/docs/sana_sprint.md) for more details.
+
+<div align="center">
+  <a href="https://www.youtube.com/watch?v=nI_Ohgf8eOU" target="_blank">
+    <img src="https://img.youtube.com/vi/nI_Ohgf8eOU/0.jpg" alt="Demo Video of SANA-Sprint" style="width: 60%; margin: 0 auto; display: block">
+  </a>
+</div>
 
 # 💪To-Do List
 
@@ -423,8 +433,8 @@ We will try our best to release
 - \[✅\] ControlNet (train & inference & models)
 - \[✅\] FSDP Training
 - \[✅\] **SANA-1.5 (Larger model size / Inference Scaling)**
+- \[✅\] **SANA-Sprint: Few-step generator**
 - \[💻\] Better re-construction F32/F64 VAEs.
-- \[💻\] **SANA-Sprint: Few-step generator**
 
 # 🤗Acknowledgements
 
@@ -439,7 +449,7 @@ We will try our best to release
 
 ## 🌟 Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=NVlabs/Sana&type=Date)](https://star-history.com/#NVlabs/sana&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=NVlabs/sana&type=Date)](https://www.star-history.com/#NVlabs/sana&Date)
 
 # 📖BibTeX
 
@@ -452,5 +462,23 @@ We will try our best to release
       archivePrefix={arXiv},
       primaryClass={cs.CV},
       url={https://arxiv.org/abs/2410.10629},
+    }
+@misc{xie2025sana,
+      title={SANA 1.5: Efficient Scaling of Training-Time and Inference-Time Compute in Linear Diffusion Transformer},
+      author={Xie, Enze and Chen, Junsong and Zhao, Yuyang and Yu, Jincheng and Zhu, Ligeng and Lin, Yujun and Zhang, Zhekai and Li, Muyang and Chen, Junyu and Cai, Han and others},
+      year={2025},
+      eprint={2501.18427},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2501.18427},
+    }
+@misc{chen2025sanasprint,
+      title={SANA-Sprint: One-Step Diffusion with Continuous-Time Consistency Distillation},
+      author={Junsong Chen and Shuchen Xue and Yuyang Zhao and Jincheng Yu and Sayak Paul and Junyu Chen and Han Cai and Enze Xie and Song Han},
+      year={2025},
+      eprint={2503.09641},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2503.09641},
     }
 ```

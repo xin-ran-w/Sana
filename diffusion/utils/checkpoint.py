@@ -23,6 +23,7 @@ import torch
 from accelerate.state import DistributedType
 
 from diffusion.utils.logger import get_root_logger
+from tools.download import find_model
 
 
 def save_checkpoint(
@@ -37,6 +38,7 @@ def save_checkpoint(
     keep_last=False,
     step=None,
     add_symlink=False,
+    add_suffix=None,
 ):
     if accelerator is not None and accelerator.distributed_type == DistributedType.FSDP:
         return save_checkpoint_fsdp(
@@ -48,6 +50,7 @@ def save_checkpoint(
             keep_last=keep_last,
             step=step,
             add_symlink=add_symlink,
+            add_suffix=add_suffix,
         )
     else:
         return save_checkpoint_ddp(
@@ -61,6 +64,7 @@ def save_checkpoint(
             keep_last=keep_last,
             step=step,
             add_symlink=add_symlink,
+            add_suffix=add_suffix,
         )
 
 
@@ -75,6 +79,7 @@ def save_checkpoint_ddp(
     keep_last=False,
     step=None,
     add_symlink=False,
+    add_suffix=None,
 ):
     os.makedirs(work_dir, exist_ok=True)
     state_dict = dict(state_dict=model.state_dict())
@@ -89,7 +94,8 @@ def save_checkpoint_ddp(
         file_path = os.path.join(work_dir, f"epoch_{epoch}.pth")
         if step is not None:
             file_path = file_path.split(".pth")[0] + f"_step_{step}.pth"
-
+    if add_suffix is not None:
+        file_path = file_path.replace(".pth", f"_{add_suffix}.pth")
     rng_state = {
         "torch": torch.get_rng_state(),
         "torch_cuda": torch.cuda.get_rng_state_all(),
@@ -125,6 +131,7 @@ def save_checkpoint_fsdp(
     keep_last=False,
     step=None,
     add_symlink=False,
+    add_suffix=None,
 ):
     """FSDP checkpoint save function, sharding"""
     logger = get_root_logger()
@@ -132,6 +139,8 @@ def save_checkpoint_fsdp(
     checkpoint_dir = os.path.join(work_dir, f"epoch_{epoch}")
     if step is not None:
         checkpoint_dir = checkpoint_dir + f"_step_{step}"
+    if add_suffix is not None:
+        checkpoint_dir = checkpoint_dir + f"_{add_suffix}"
     os.makedirs(checkpoint_dir, exist_ok=True)
 
     model_dir = os.path.join(checkpoint_dir, "model")
@@ -229,7 +238,8 @@ def load_checkpoint_ddp(
     assert isinstance(checkpoint, str)
     logger = get_root_logger()
     ckpt_file = checkpoint
-    checkpoint = torch.load(ckpt_file, map_location="cpu")
+    checkpoint = find_model(ckpt_file)
+    # checkpoint = torch.load(ckpt_file, map_location="cpu")
 
     state_dict_keys = ["pos_embed", "base_model.pos_embed", "model.pos_embed"]
     for key in state_dict_keys:
@@ -257,7 +267,7 @@ def load_checkpoint_ddp(
         lr_scheduler.load_state_dict(checkpoint["scheduler"])
 
     epoch = 0
-    if optimizer is not None:
+    if optimizer is not None and resume_optimizer:
         epoch_match = re.search(r"epoch_(\d+)", ckpt_file)
         epoch = int(epoch_match.group(1)) if epoch_match else 0
         logger.info(
@@ -281,7 +291,7 @@ def load_checkpoint_fsdp(
     assert os.path.isdir(checkpoint), f"Checkpoint directory {checkpoint} does not exist!"
 
     # 1 load model
-    state_dict_model = torch.load(os.path.join(checkpoint, "model", "pytorch_model_fsdp.bin"), map_location="cpu")
+    state_dict_model = find_model(os.path.join(checkpoint, "model", "pytorch_model_fsdp.bin"), map_location="cpu")
 
     state_dict_keys = ["pos_embed", "base_model.pos_embed", "model.pos_embed"]
     for key in state_dict_keys:

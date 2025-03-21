@@ -338,13 +338,7 @@ def train(
                 z = batch[0].to(accelerator.device)
             else:
                 with torch.no_grad():
-                    with torch.amp.autocast(
-                        "cuda",
-                        enabled=(config.model.mixed_precision == "fp16" or config.model.mixed_precision == "bf16"),
-                    ):
-                        z = vae_encode(
-                            config.vae.vae_type, vae, batch[0], config.vae.sample_posterior, accelerator.device
-                        )
+                    z = vae_encode(config.vae.vae_type, vae, batch[0], config.vae.sample_posterior, accelerator.device)
 
             accelerator.wait_for_everyone()
             vae_time_all += time.time() - vae_time_start
@@ -722,7 +716,7 @@ def main(cfg: SanaConfig) -> None:
     else:
         text_embed_dim = config.text_encoder.caption_channels
 
-    logger.info(f"vae type: {config.vae.vae_type}")
+    logger.info(f"vae type: {config.vae.vae_type}, path: {config.vae.vae_pretrained}, weight_dtype: {vae_dtype}")
     if config.text_encoder.chi_prompt:
         chi_prompt = "\n".join(config.text_encoder.chi_prompt)
         logger.info(f"Complex Human Instruct: {chi_prompt}")
@@ -830,13 +824,15 @@ def main(cfg: SanaConfig) -> None:
     train_diffusion = Scheduler(
         str(config.scheduler.train_sampling_steps),
         noise_schedule=config.scheduler.noise_schedule,
-        predict_v=config.scheduler.predict_v,
+        predict_flow_v=config.scheduler.predict_flow_v,
         learn_sigma=learn_sigma,
         pred_sigma=pred_sigma,
         snr=config.train.snr_loss,
         flow_shift=config.scheduler.flow_shift,
     )
-    predict_info = f"v-prediction: {config.scheduler.predict_v}, noise schedule: {config.scheduler.noise_schedule}"
+    predict_info = (
+        f"flow-prediction: {config.scheduler.predict_flow_v}, noise schedule: {config.scheduler.noise_schedule}"
+    )
     if "flow" in config.scheduler.noise_schedule:
         predict_info += f", flow shift: {config.scheduler.flow_shift}"
     if config.scheduler.weighting_scheme in ["logit_normal", "mode"]:

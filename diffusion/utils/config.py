@@ -44,10 +44,14 @@ class DataConfig(BaseConfig):
 @dataclass
 class ModelConfig(BaseConfig):
     model: str = "SanaMS_600M_P1_D28"
+    teacher: Optional[str] = None
     image_size: int = 512
     mixed_precision: str = "fp16"  # ['fp16', 'fp32', 'bf16']
     fp32_attention: bool = True
     load_from: Optional[str] = None
+    discriminator_model: Optional[str] = None
+    teacher_model: Optional[str] = None
+    teacher_model_weight_dtype: Optional[str] = None
     resume_from: Optional[Union[Dict[str, Any], str]] = field(
         default_factory=lambda: {
             "checkpoint": None,
@@ -71,16 +75,23 @@ class ModelConfig(BaseConfig):
     class_dropout_prob: float = 0.0
     linear_head_dim: int = 32
     cross_norm: bool = False
+    cross_attn_type: str = "flash"
+    logvar: bool = False
     cfg_scale: int = 4
+    cfg_embed: bool = False
+    cfg_embed_scale: float = 1.0
     guidance_type: str = "classifier-free"
     pag_applied_layers: List[int] = field(default_factory=lambda: [14])
+    # for ladd
+    ladd_multi_scale: bool = True
+    head_block_ids: Optional[List[int]] = None
     extra: Any = None
 
 
 @dataclass
 class AEConfig(BaseConfig):
-    vae_type: str = "dc-ae"
-    vae_pretrained: str = "mit-han-lab/dc-ae-f32c32-sana-1.0"
+    vae_type: str = "AutoencoderDC"
+    vae_pretrained: str = "mit-han-lab/dc-ae-f32c32-sana-1.1-diffusers"
     weight_dtype: str = "float32"
     scale_factor: float = 0.41407
     vae_latent_dim: int = 32
@@ -103,7 +114,7 @@ class TextEncoderConfig(BaseConfig):
 @dataclass
 class SchedulerConfig(BaseConfig):
     train_sampling_steps: int = 1000
-    predict_v: bool = True
+    predict_flow_v: bool = True
     noise_schedule: str = "linear_flow"
     pred_sigma: bool = False
     learn_sigma: bool = True
@@ -111,8 +122,13 @@ class SchedulerConfig(BaseConfig):
     flow_shift: float = 1.0
     # logit-normal timestep
     weighting_scheme: Optional[str] = "logit_normal"
+    weighting_scheme_discriminator: Optional[str] = "logit_normal_trigflow"
+    add_noise_timesteps: List[float] = field(default_factory=lambda: [1.57080])
     logit_mean: float = 0.0
     logit_std: float = 1.0
+    logit_mean_discriminator: float = 0.0
+    logit_std_discriminator: float = 1.0
+    sigma_data: float = 0.5
     timestep_norm_scale_factor: float = 1.0
     extra: Any = None
 
@@ -120,7 +136,7 @@ class SchedulerConfig(BaseConfig):
 @dataclass
 class TrainingConfig(BaseConfig):
     num_workers: int = 4
-    seed: int = 43
+    seed: int = 42
     train_batch_size: int = 32
     num_epochs: int = 100
     gradient_accumulation_steps: int = 1
@@ -128,6 +144,9 @@ class TrainingConfig(BaseConfig):
     gradient_clip: float = 1.0
     gc_step: int = 1
     optimizer: Dict[str, Any] = field(
+        default_factory=lambda: {"eps": 1.0e-10, "lr": 0.0001, "type": "AdamW", "weight_decay": 0.03}
+    )
+    optimizer_D: Dict[str, Any] = field(
         default_factory=lambda: {"eps": 1.0e-10, "lr": 0.0001, "type": "AdamW", "weight_decay": 0.03}
     )
     load_from_optimizer: bool = False
@@ -173,12 +192,37 @@ class TrainingConfig(BaseConfig):
     loss_type: str = "huber"
     huber_c: float = 0.001
     num_ddim_timesteps: int = 50
-    w_max: float = 15.0
-    w_min: float = 3.0
     ema_decay: float = 0.95
     debug_nan: bool = False
     ema_update: bool = False
     ema_rate: float = 0.9999
+    ### SANA-Sprint related below
+    # for sCM
+    tangent_warmup_steps: int = 10000
+    scm_cfg_scale: Union[float, List[float]] = field(default_factory=lambda: [1.0])
+    cfg_interval: Optional[List[float]] = None
+    scm_logvar_loss: bool = True
+    norm_invariant_to_spatial_dim: bool = True
+    norm_same_as_512_scale: bool = False
+    g_norm_constant: float = 0.1
+    g_norm_r: float = 1.0
+    show_gradient: bool = False
+    lr_scale: Optional[Dict[str, List[str]]] = None
+    # for ladd
+    adv_lambda: float = 1.0
+    scm_loss: bool = True
+    scm_lambda: float = 1.0
+    loss_scale: float = 1.0
+    r1_penalty: bool = False
+    r1_penalty_weight: float = 1.0e-5
+    diff_timesteps_D: bool = True
+    # for adversarial loss
+    suffix_checkpoints: Optional[str] = "disc"
+    misaligned_pairs_D: bool = False
+    discriminator_loss: str = "cross entropy"
+    largest_timestep: float = 1.57080
+    train_largest_timestep: bool = False
+    largest_timestep_prob: float = 0.5
     extra: Any = None
 
 
@@ -209,8 +253,7 @@ class ModelGrowthConfig(BaseConfig):
         }
     )
     source_num_layers: int = 20
-    target_num_layers: int = 30
-    extra: Any = None
+    target_num_layers: int = 60
 
 
 @dataclass
@@ -260,5 +303,6 @@ def model_init_config(config: SanaConfig, latent_size: int = 32):
         "pred_sigma": pred_sigma,
         "learn_sigma": learn_sigma,
         "cross_norm": config.model.cross_norm,
+        "cross_attn_type": config.model.cross_attn_type,
         "timestep_norm_scale_factor": config.scheduler.timestep_norm_scale_factor,
     }
