@@ -309,12 +309,12 @@ with gr.Blocks(css_paths="asset/app_styles/controlnet_app_style.css", title=f"Sa
             [
                 "https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/robot.png",
                 "A robot made of exotic candies and chocolates of different kinds. The background is filled with confetti and celebratory gifts.",
-                "None',
+                "None",
             ],
             [
                 "https://huggingface.co/mit-han-lab/svdq-int4-flux.1-fill-dev/resolve/main/example.png",
                 "A wooden basket of several individual cartons of strawberries.",
-                "None',
+                "None",
             ],
         ],
         inputs=[canvas, prompt, style],
