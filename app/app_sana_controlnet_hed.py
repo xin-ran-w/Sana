@@ -297,6 +297,27 @@ with gr.Blocks(css_paths="asset/app_styles/controlnet_app_style.css", title=f"Sa
         api_name=False,
     )
 
+    gr.Examples(
+        examples=[
+            [
+                'https://huggingface.co/mit-han-lab/svdq-int4-flux.1-canny-dev/resolve/main/logo_example.png',
+                "A logo of 'MIT HAN Lab'.",
+                'Fantasy art',
+            ],
+            [
+                'https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/robot.png',
+                'A robot made of exotic candies and chocolates of different kinds. The background is filled with confetti and celebratory gifts.',
+                'None',
+            ],
+            [
+                'https://huggingface.co/mit-han-lab/svdq-int4-flux.1-fill-dev/resolve/main/example.png',
+                'A wooden basket of several individual cartons of strawberries.',
+                'None',
+            ],
+        ],
+        inputs=[canvas, prompt, style]
+    )
+
     download_sketch.click(fn=save_image, inputs=canvas, outputs=download_sketch)
     download_result.click(fn=save_image, inputs=result, outputs=download_result)
     gr.Markdown("MIT Accessibility: https://accessibility.mit.edu/", elem_id="accessibility")
