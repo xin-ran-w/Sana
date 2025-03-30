@@ -219,6 +219,123 @@ class SanaImgDataset(torch.utils.data.Dataset):
 
 
 @DATASETS.register_module()
+class CustomSanaImgDataset(SanaImgDataset):
+    
+    def __init__(self, data_dir="", transform=None, resolution=256, load_vae_feat=False, load_text_feat=False, max_length=300, config=None, caption_proportion=None, external_caption_suffixes=None, external_clipscore_suffixes=None, clip_thr=0, clip_thr_temperature=1, img_extension=".png", **kwargs):
+
+
+        if external_caption_suffixes is None:
+            external_caption_suffixes = []
+        if external_clipscore_suffixes is None:
+            external_clipscore_suffixes = []
+
+        self.logger = (
+            get_root_logger() if config is None else get_root_logger(osp.join(config.work_dir, "train_log.log"))
+        )
+        self.transform = transform if not load_vae_feat else None
+        self.load_vae_feat = load_vae_feat
+        self.load_text_feat = load_text_feat
+        self.resolution = resolution
+        self.max_length = max_length
+        self.caption_proportion = caption_proportion if caption_proportion is not None else {"prompt": 1.0}
+        self.external_caption_suffixes = external_caption_suffixes
+        self.external_clipscore_suffixes = external_clipscore_suffixes
+        self.clip_thr = clip_thr
+        self.clip_thr_temperature = clip_thr_temperature
+        self.default_prompt = "prompt"
+        self.img_extension = img_extension
+
+        self.data_dirs = data_dir if isinstance(data_dir, list) else [data_dir]
+        # self.meta_datas = [osp.join(data_dir, "meta_data.json") for data_dir in self.data_dirs]
+        self.dataset = []
+        self.prompt_dirs = []
+        for data_dir in self.data_dirs:
+            meta_data = json.load(open(osp.join(data_dir, "meta_data.json")))
+            self.dataset.extend([osp.join(data_dir, i) for i in meta_data["img_names"]])
+            self.prompt_dirs.extend([meta_data["prompt_dir"]] * len(meta_data["img_names"]))
+        
+        self.ori_imgs_nums = len(self)
+        self.logger.info(f"Dataset samples: {len(self.dataset)}")
+
+        self.logger.info(f"Loading external caption json from: original_filename{external_caption_suffixes}.json")
+        self.logger.info(f"Loading external clipscore json from: original_filename{external_clipscore_suffixes}.json")
+        self.logger.info(f"external caption clipscore threshold: {clip_thr}, temperature: {clip_thr_temperature}")
+        self.logger.info(f"Text max token length: {self.max_length}")
+
+
+    def getdata(self, idx):
+        data = self.dataset[idx]
+        filename, ext = os.path.splitext(data)
+        data = filename
+        self.img_extension = ext
+        self.key = data.split("/")[-1]
+        info = {}
+        prompt_dir = self.prompt_dirs[idx]
+        
+        # external json file
+        for suffix in self.external_caption_suffixes:
+            caption_json_path = os.path.join(prompt_dir, f"{os.path.basename(filename)}{suffix}.json")
+            if os.path.exists(caption_json_path):
+                try:
+                    caption_json = lru_json_load(caption_json_path)
+                except:
+                    caption_json = {}
+                if self.key in caption_json:
+                    info.update(caption_json[self.key])
+        
+        # prompt selection method
+        # caption_type, caption_clipscore = self.weighted_sample_clipscore(data, info)
+        # caption_type = caption_type if caption_type in info else self.default_prompt
+        # txt_fea = "" if info[caption_type] is None else info[caption_type]
+        
+        caption_clipscore = 1.0
+        caption_type = 'prompt'
+        txt_fea = random.choice(list(info.values()))
+        data_info = {
+            "img_hw": torch.tensor([self.resolution, self.resolution], dtype=torch.float32),
+            "aspect_ratio": torch.tensor(1.0),
+        }
+
+        if self.load_vae_feat:
+            assert ValueError("Load VAE is not supported now")
+        else:
+            img = f"{data}{self.img_extension}"
+            img = Image.open(img)
+        if self.transform:
+            img = self.transform(img)
+
+        attention_mask = torch.ones(1, 1, self.max_length, dtype=torch.int16)  # 1x1xT
+        if self.load_text_feat:
+            npz_path = f"{self.key}.npz"
+            txt_info = np.load(npz_path)
+            txt_fea = torch.from_numpy(txt_info["caption_feature"])  # 1xTx4096
+            if "attention_mask" in txt_info:
+                attention_mask = torch.from_numpy(txt_info["attention_mask"])[None]
+            # make sure the feature length are the same
+            if txt_fea.shape[1] != self.max_length:
+                txt_fea = torch.cat([txt_fea, txt_fea[:, -1:].repeat(1, self.max_length - txt_fea.shape[1], 1)], dim=1)
+                attention_mask = torch.cat(
+                    [attention_mask, torch.zeros(1, 1, self.max_length - attention_mask.shape[-1])], dim=-1
+                )
+
+        return (
+            img,
+            txt_fea,
+            attention_mask.to(torch.int16),
+            data_info,
+            idx,
+            caption_type,
+            "",
+            str(caption_clipscore),
+        )
+    
+    def __getitem__(self, idx):
+        data = self.getdata(idx)
+        return data
+    
+    
+
+@DATASETS.register_module()
 class SanaWebDataset(torch.utils.data.Dataset):
     def __init__(
         self,
@@ -463,7 +580,7 @@ if __name__ == "__main__":
         load_vae_feat=True,
         num_replicas=1,
     )
-    dataloader = DataLoader(train_dataset, batch_size=32, shuffle=False, num_workers=4)
+    dataloader = DataLoader(train_dataset, batch_size=32, shuffle=False, num_workers=0)
 
     for data in dataloader:
         img, txt_fea, attention_mask, data_info = data
