@@ -1,8 +1,8 @@
 #/bin/bash
 set -e
 
-work_dir=output/debug
-np=2
+work_dir=output/baseline
+np=8
 
 
 if [[ $1 == *.yaml ]]; then
@@ -22,5 +22,4 @@ TRITON_PRINT_AUTOTUNING=1 \
         --name=tmp \
         --resume_from=latest \
         --report_to=tensorboard \
-        --debug=true \
         "$@"
