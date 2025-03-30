@@ -10,7 +10,8 @@
   <a href="https://nvlabs.github.io/Sana/"><img src="https://img.shields.io/static/v1?label=Project&message=Github&color=blue&logo=github-pages"></a> &ensp;
   <a href="https://hanlab.mit.edu/projects/sana/"><img src="https://img.shields.io/static/v1?label=Page&message=MIT&color=darkred&logo=github-pages"></a> &ensp;
   <a href="https://arxiv.org/abs/2410.10629"><img src="https://img.shields.io/static/v1?label=Arxiv&message=Sana&color=red&logo=arxiv"></a> &ensp;
-  <a href="https://nv-sana.mit.edu/"><img src="https://img.shields.io/static/v1?label=Demo:6x3090&message=MIT&color=yellow"></a> &ensp;
+  <a href="https://nv-sana.mit.edu/"><img src="https://img.shields.io/static/v1?label=Demo:5x3090&message=SANA&color=yellow"></a> &ensp;
+  <a href="https://nv-sana.mit.edu/sprint/"><img src="https://img.shields.io/static/v1?label=Demo:1x3090&message=SANA-Sprint&color=yellow"></a> &ensp;
   <a href="https://nv-sana.mit.edu/4bit/"><img src="https://img.shields.io/static/v1?label=Demo:1x3090&message=4bit&color=yellow"></a> &ensp;
   <a href="https://nv-sana.mit.edu/ctrlnet/"><img src="https://img.shields.io/static/v1?label=Demo:1x3090&message=ControlNet&color=yellow"></a> &ensp;
   <a href="https://replicate.com/chenxwh/sana"><img src="https://img.shields.io/static/v1?label=API:H100&message=Replicate&color=pink"></a> &ensp;
@@ -25,7 +26,7 @@
 
 ### 🚶 Basic:
 
-**Demo**: [SANA-1.5](https://nv-sana.mit.edu/) | [SANA-ControlNet](https://nv-sana.mit.edu/ctrlnet/) | [SANA-4bit](https://nv-sana.mit.edu/4bit/) | [SANA-Sprint (Coming)](<>) <br>
+**Demo**: [SANA-1.5](https://nv-sana.mit.edu/) | [SANA-ControlNet](https://nv-sana.mit.edu/ctrlnet/) | [SANA-4bit](https://nv-sana.mit.edu/4bit/) | [SANA-Sprint](https://nv-sana.mit.edu/sprint/) <br>
 **ComfyUI**: [ComfyUI Guidance](asset/docs/ComfyUI/comfyui.md) <br>
 **Model Zoo:** [Model Card Collects All Models](asset/docs/model_zoo.md) <br>
 **Env Preparation:** [One-Click Env Install](#-1-dependencies-and-installation) <br>
@@ -206,8 +207,7 @@ import torch
 from diffusers import SanaPipeline
 
 pipe = SanaPipeline.from_pretrained(
-    "Efficient-Large-Model/Sana_1600M_1024px_BF16_diffusers",
-    variant="bf16",
+    "Efficient-Large-Model/SANA1.5_1.6B_1024px",
     torch_dtype=torch.bfloat16,
 )
 pipe.to("cuda")
@@ -239,9 +239,8 @@ import torch
 from diffusers import SanaPAGPipeline
 
 pipe = SanaPAGPipeline.from_pretrained(
-  "Efficient-Large-Model/Sana_1600M_1024px_diffusers",
-  variant="fp16",
-  torch_dtype=torch.float16,
+  "Efficient-Large-Model/SANA1.5_1.6B_1024px_diffusers",
+  torch_dtype=torch.bfloat16,
   pag_applied_layers="transformer_blocks.8",
 )
 pipe.to("cuda")
@@ -275,17 +274,17 @@ from torchvision.utils import save_image
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 generator = torch.Generator(device=device).manual_seed(42)
 
-sana = SanaPipeline("configs/sana_config/1024ms/Sana_1600M_img1024.yaml")
-sana.from_pretrained("hf://Efficient-Large-Model/Sana_1600M_1024px_BF16/checkpoints/Sana_1600M_1024px_BF16.pth")
+sana = SanaPipeline("configs/sana1-5_config/1024ms/Sana_1600M_1024px_allqknorm_bf16_lr2e5.yaml")
+sana.from_pretrained("hf://Efficient-Large-Model/SANA1.5_1.6B_1024px/checkpoints/SANA1.5_1.6B_1024px.pth")
 prompt = 'a cyberpunk cat with a neon sign that says "Sana"'
 
 image = sana(
     prompt=prompt,
     height=1024,
     width=1024,
-    guidance_scale=5.0,
-    pag_guidance_scale=2.0,
-    num_inference_steps=18,
+    guidance_scale=4.5,
+    pag_guidance_scale=1.0,
+    num_inference_steps=20,
     generator=generator,
 )
 save_image(image, 'output/sana.png', nrow=1, normalize=True, value_range=(-1, 1))
